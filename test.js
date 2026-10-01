@@ -58,10 +58,11 @@ assert.deepEqual(string.get('hsl(240deg 100% 50.5%)'), {model: 'hsl', value: [24
 assert.deepEqual(string.get('hwb(240, 100%, 50.5%)'), {model: 'hwb', value: [240, 100, 50.5, 1]});
 assert.deepEqual(string.get('hwb(240deg, 100%, 50.5%)'), {model: 'hwb', value: [240, 100, 50.5, 1]});
 assert.deepEqual(string.get('hwb(12 50% 0%)'), {model: 'hwb', value: [12, 50, 0, 1]});
+assert.deepEqual(string.get('hsla(250, 100%, 50%, 50%)'), {model: 'hsl', value: [250, 100, 50, 0.5]});
+assert.deepEqual(string.get('hsl(250 100% 50% / 50%)'), {model: 'hsl', value: [250, 100, 50, 0.5]});
+assert.deepEqual(string.get('hwb(120 0% 0% / 50%)'), {model: 'hwb', value: [120, 0, 0, 0.5]});
 
 // Invalid generic .get() calls
-assert.deepEqual(string.get('hsla(250, 100%, 50%, 50%)'), null);
-assert.deepEqual(string.get('hsl(250 100% 50% / 50%)'), null);
 assert.deepEqual(string.get('rgba(250, 100%, 50%, 50%)'), null);
 assert.deepEqual(string.get('rgba(250 100% 50% 50%)'), null);
 assert.deepEqual(string.get('333333'), null);
@@ -161,6 +162,24 @@ assert.deepEqual(string.get.hsl('hsl(200 20% 33% / 0.2)'), [200, 20, 33, 0.2]);
 assert.deepEqual(string.get.hsl('hsl(200 20% 33% / 1e-7)'), [200, 20, 33, 1e-7]);
 assert.deepEqual(string.get.hwb('hwb(200, 20%, 33%, 0.2)'), [200, 20, 33, 0.2]);
 assert.deepEqual(string.get.hwb('hwb(200, 20%, 33%, 1e-7)'), [200, 20, 33, 1e-7]);
+assert.deepEqual(string.get.hwb('hwb(200 20% 33% / 0.2)'), [200, 20, 33, 0.2]);
+assert.deepEqual(string.get.hwb('hwb(200 20% 33% / 1e-7)'), [200, 20, 33, 1e-7]);
+
+// Percentage alpha, including boundaries, clamping, and scientific notation
+for (const [alpha, expected] of [
+	['50%', 0.5],
+	['0%', 0],
+	['100%', 1],
+	['-25%', 0],
+	['125%', 1],
+	['.5%', 0.005],
+	['1e-2%', 0.0001],
+]) {
+	assert.deepEqual(string.get.hsl(`hsla(120, 50%, 50%, ${alpha})`), [120, 50, 50, expected]);
+	assert.deepEqual(string.get.hsl(`hsl(120 50% 50% / ${alpha})`), [120, 50, 50, expected]);
+	assert.deepEqual(string.get.hwb(`hwb(120, 0%, 0%, ${alpha})`), [120, 0, 0, expected]);
+	assert.deepEqual(string.get.hwb(`hwb(120 0% 0% / ${alpha})`), [120, 0, 0, expected]);
+}
 
 // No alpha
 assert.deepEqual(string.get.rgb('#fef'), [255, 238, 255, 1]);
@@ -213,6 +232,10 @@ assert.strictEqual(string.get.hwb('hwb(240, 100%, e'), null);
 assert.strictEqual(string.get.hwb('hwb(240, 100%, 0e-'), null);
 assert.strictEqual(string.get.hwb('hwb(240, 100%, 0e+'), null);
 assert.strictEqual(string.get.hwb('hwb(240, 100%, +000e33'), null);
+for (const alpha of ['%', '50 %', '50%%', '1e%']) {
+	assert.strictEqual(string.get.hsl(`hsl(120 50% 50% / ${alpha})`), null);
+	assert.strictEqual(string.get.hwb(`hwb(120 0% 0% / ${alpha})`), null);
+}
 
 // Generators
 assert.equal(string.to.hex(255, 10, 35), '#FF0A23');

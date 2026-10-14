@@ -133,7 +133,7 @@ cs.get.hsl = function (string) {
 		return null;
 	}
 
-	const hsl = /^hsla?\(\s*([+-]?(?:\d{0,3}\.)?\d+)(?:deg)?\s*,?\s*([+-]?[\d.]+)%\s*,?\s*([+-]?[\d.]+)%\s*(?:[,|/]\s*([+-]?(?=\.\d|\d)(?:0|[1-9]\d*)?(?:\.\d*)?(?:e[+-]?\d+)?)\s*)?\)$/i;
+	const hsl = /^hsla?\(\s*([+-]?(?:\d{0,3}\.)?\d+)(?:deg)?\s*,?\s*([+-]?[\d.]+)%\s*,?\s*([+-]?[\d.]+)%\s*(?:[,|/]\s*([+-]?(?=\.\d|\d)(?:0|[1-9]\d*)?(?:\.\d*)?(?:e[+-]?\d+)?)(%)?\s*)?\)$/i;
 	const match = string.match(hsl);
 
 	if (match) {
@@ -141,7 +141,7 @@ cs.get.hsl = function (string) {
 		const h = ((Number.parseFloat(match[1]) % 360) + 360) % 360;
 		const s = clamp(Number.parseFloat(match[2]), 0, 100);
 		const l = clamp(Number.parseFloat(match[3]), 0, 100);
-		const a = clamp(Number.isNaN(alpha) ? 1 : alpha, 0, 1);
+		const a = clamp(Number.isNaN(alpha) ? 1 : (match[5] ? alpha / 100 : alpha), 0, 1);
 
 		return [h, s, l, a];
 	}
